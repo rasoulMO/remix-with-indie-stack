@@ -29,3 +29,7 @@ export async function getPosts() {
 	// this will get all the posts from the database
 	return prisma.post.findMany();
 }
+
+export async function getPostBySlug(slug: string) {
+	return prisma.post.findUnique({ where: { slug } });
+}
