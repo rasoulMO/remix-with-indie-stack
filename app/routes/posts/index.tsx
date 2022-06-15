@@ -1,18 +1,10 @@
 import { json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
+import { getPosts } from "~/models/post.server";
 
 // this loader is used just on the server.
 export const loader = async () => {
-  const posts = [
-    {
-      slug: "hello-world",
-      title: "Hello World",
-    },
-    {
-      slug: "my-first-remix-post",
-      title: "My First Remix Post",
-    },
-  ];
+  const posts = await getPosts();
 
   // this is what we have to do if we don't use {json} from "@remix-run/node"
   // const postsString = JSON.stringify({ posts });
