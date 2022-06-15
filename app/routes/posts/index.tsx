@@ -1,15 +1,15 @@
 import type { LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
-import { getPosts } from "~/models/post.server";
+import { getPostListing } from "~/models/post.server";
 
 type LoaderData = {
-  posts: Awaited<ReturnType<typeof getPosts>>;
+  posts: Awaited<ReturnType<typeof getPostListing>>;
 };
 
 // this loader is used just on the server.
 export const loader: LoaderFunction = async () => {
-  const posts = await getPosts();
+  const posts = await getPostListing();
 
   // this is what we have to do if we don't use {json} from "@remix-run/node"
   // const postsString = JSON.stringify({ posts });
@@ -21,6 +21,7 @@ export const loader: LoaderFunction = async () => {
   // });
 
   // here we still can incude headers if we need to...
+  // for getPosts we could plucked off the pieces of the response we didn't need
   return json<LoaderData>({ posts });
 };
 

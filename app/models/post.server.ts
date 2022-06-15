@@ -1,6 +1,18 @@
 // this file is used to access the post on database, this is only used in the server side.
 import { prisma } from '~/db.server'
 
+// this function is used to solve data overFetching problem.
+export async function getPostListing() {
+	const posts = await prisma.post.findMany({
+		select: {
+			slug: true,
+			title: true,
+		}
+	})
+	return posts
+}
+
+
 export async function getPosts() {
 	// const posts = [
 	// 	{
