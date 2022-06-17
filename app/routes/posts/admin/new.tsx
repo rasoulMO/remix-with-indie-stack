@@ -1,4 +1,4 @@
-import { Form, useActionData } from "@remix-run/react";
+import { Form, useActionData, useTransition } from "@remix-run/react";
 import type { ActionFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
@@ -47,6 +47,11 @@ export default function NewPostRoute() {
   // useActionData() is a hook that returns the data from the action
   const errors = useActionData() as ActionData;
 
+  // useTransition() is a hook that returns a transition object that can be used to give the user feedback about the action, like a loading indicator, or a success message.
+  const transition = useTransition();
+
+  const isCreating = Boolean(transition.submission);
+
   return (
     <Form method="post">
       <p>
@@ -83,8 +88,9 @@ export default function NewPostRoute() {
         <button
           type="submit"
           className="rounded bg-blue-500 py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400 disabled:bg-blue-300"
+          disabled={isCreating}
         >
-          Create Post
+          {isCreating ? "Creating..." : "Create Post"}
         </button>
       </div>
     </Form>
