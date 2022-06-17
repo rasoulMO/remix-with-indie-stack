@@ -1,12 +1,15 @@
 import {
   Form,
   useActionData,
+  useCatch,
   useLoaderData,
+  useParams,
   useTransition,
 } from "@remix-run/react";
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
+import type { Post } from "~/models/post.server";
 import {
   createPost,
   deletePost,
@@ -16,6 +19,25 @@ import {
 import invariant from "tiny-invariant";
 import { requireAdminUser } from "~/session.server";
 
+type LoaderData = { post?: Post };
+
+// ! we need to chech if the user is the admin on both the loader and the action functions
+export const loader: LoaderFunction = async ({ request, params }) => {
+  await requireAdminUser(request);
+  invariant(params.slug, "slug is required");
+
+  if (params.slug === "new") {
+    return json<LoaderData>({});
+  }
+
+  const post = await getPostBySlug(params.slug);
+  if (!post) {
+    throw new Response("Not Found", { status: 404 });
+  }
+
+  return json<LoaderData>({ post });
+};
+
 type ActionData =
   | {
       title: null | string;
@@ -24,21 +46,9 @@ type ActionData =
     }
   | undefined;
 
-// ! we need to chech if the user is the admin on both the loader and the action functions
-export const loader: LoaderFunction = async ({ request, params }) => {
-  await requireAdminUser(request);
-
-  if (params.slug === "new") {
-    return json({});
-  }
-
-  const post = await getPostBySlug(params.slug);
-
-  return json({ post });
-};
-
 export const action: ActionFunction = async ({ request, params }) => {
   await requireAdminUser(request);
+  invariant(params.slug, "slug is required");
   const formData = await request.formData();
   const intent = formData.get("intent");
 
@@ -79,7 +89,7 @@ export const action: ActionFunction = async ({ request, params }) => {
 const inputClassName = `w-full rounded border border-gray-500 px-2 py-1 text-lg`;
 
 export default function NewPostRoute() {
-  const data = useLoaderData();
+  const data = useLoaderData() as LoaderData;
   // useActionData() is a hook that returns the data from the action
   const errors = useActionData() as ActionData;
 
@@ -159,4 +169,17 @@ export default function NewPostRoute() {
       </div>
     </Form>
   );
+}
+
+export function CatchBoundary() {
+  const caught = useCatch();
+  const params = useParams();
+  if (caught.status === 404) {
+    return (
+      <div className="text-red-500">
+        Uh oh! The post with the slug "{params.slug}" does not exist!
+      </div>
+    );
+  }
+  throw new Error(`Unsupported thrown response status code: ${caught.status}`);
 }
