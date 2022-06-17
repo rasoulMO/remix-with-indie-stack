@@ -2,6 +2,8 @@
 import type { Post } from '@prisma/client';
 import { prisma } from '~/db.server'
 
+export type { Post };
+
 // this function is used to solve data overFetching problem.
 export async function getPostListing() {
 	const posts = await prisma.post.findMany({
