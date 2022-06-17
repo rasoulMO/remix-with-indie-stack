@@ -17,7 +17,9 @@ export const loader: LoaderFunction = async ({ params }) => {
   invariant(slug, "slug is required");
   const post = await getPostBySlug(slug);
 
-  invariant(post, `post with slug ${slug} not found`);
+  if (!post) {
+    throw new Response("Not Found", { status: 404 });
+  }
   const html = marked(post.markdown);
   return json<LoaderData>({ title: post.title, html });
 };
@@ -30,4 +32,16 @@ export default function PostRoute() {
       <div dangerouslySetInnerHTML={{ __html: html }} />
     </main>
   );
+}
+
+export function ErrorBoundary({ error }: { error: unknown }) {
+  if (error instanceof Error) {
+    return (
+      <div className="text-red-500">
+        Oh no, something went wrong!
+        <pre>{error.message}</pre>
+      </div>
+    );
+  }
+  return <div className="text-red-500">Oh no, something went wrong!</div>;
 }
