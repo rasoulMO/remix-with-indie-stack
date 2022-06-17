@@ -7,7 +7,12 @@ import {
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import { createPost, getPostBySlug, updatePost } from "~/models/post.server";
+import {
+  createPost,
+  deletePost,
+  getPostBySlug,
+  updatePost,
+} from "~/models/post.server";
 import invariant from "tiny-invariant";
 import { requireAdminUser } from "~/session.server";
 
@@ -35,6 +40,12 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 export const action: ActionFunction = async ({ request, params }) => {
   await requireAdminUser(request);
   const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "delete") {
+    await deletePost(params.slug);
+    return redirect("/posts/admin");
+  }
 
   const title = formData.get("title");
   const slug = formData.get("slug");
@@ -76,6 +87,8 @@ export default function NewPostRoute() {
   const transition = useTransition();
   const isCreating = transition.submission?.formData.get("intent") === "create";
   const isUpdating = transition.submission?.formData.get("intent") === "update";
+  const isDeleting = transition.submission?.formData.get("intent") === "delete";
+
   const isNewPost = !data.post;
 
   return (
@@ -122,6 +135,17 @@ export default function NewPostRoute() {
         />
       </p>
       <div className="flex justify-end gap-4">
+        {isNewPost ? null : (
+          <button
+            type="submit"
+            name="intent"
+            value="delete"
+            className="rounded bg-red-500 py-2 px-4 text-white hover:bg-red-600 focus:bg-red-400 disabled:bg-red-300"
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
+          </button>
+        )}
         <button
           type="submit"
           name="intent"
