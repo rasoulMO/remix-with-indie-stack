@@ -1,4 +1,5 @@
 // this file is used to access the post on database, this is only used in the server side.
+import type { Post } from '@prisma/client';
 import { prisma } from '~/db.server'
 
 // this function is used to solve data overFetching problem.
@@ -34,6 +35,6 @@ export async function getPostBySlug(slug: string) {
 	return prisma.post.findUnique({ where: { slug } });
 }
 
-export async function createPost(post) {
+export async function createPost(post: Pick<Post, "slug" | "title" | "markdown">) {
 	return prisma.post.create({ data: post });
 }
